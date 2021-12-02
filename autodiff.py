@@ -1,41 +1,20 @@
-from utils import topological_sort
-
-class ad_addition_node:
-
-    def __init__(self, left, right):
-        self.left = left
-        self.right = right
-        self.vertices = [left, right]
-
-    def backward(self, acc):
-        self.left.grad += acc
-        self.right.grad += acc
+import math
 
 
-class ad_multiplication_node:
-
-    def __init__(self, left, right):
-        self.left = left
-        self.right = right
-        self.vertices = [left, right]
-
-    def backward(self, acc):
-        self.left.grad += self.right.value * acc
-        self.right.grad += self.left.value * acc
-
+###############################################################################
+# Auto Diff Float Class
+###############################################################################
 
 class ad_float:
 
     def __init__(self, value: float, compute_graph=None):
         self.value = value
-        self.grad = 0
+        self.grad = 0.0
         self.compute_graph = compute_graph
 
     def __str__(self):
+        # Pretty prints ad_float
         return f"ad_float:\nvalue: {self.value}\ngrad: {self.grad}\ncompute_graph: {self.compute_graph}"
-
-    #def __eq__(self, other):
-    #return self.value == other.value and self.grad == other.grad and self.compute_graph == other.compute_graph
 
     def __add__(self, other):
         if not isinstance(other, ad_float):
@@ -64,27 +43,30 @@ class ad_float:
             other = ad_float(other)
         return ad_float(
             self.value - other.value,
-            # compute_graph=ad_substraction_node(self, other)
+            compute_graph=ad_substraction_node(self, other)
         )
 
-    def __backward(self, acc = 1.0):
-        print(f"value: {self.value} $$ grad: {self.grad} $$ cg: {self.compute_graph}")
-        if self.compute_graph is not None:
-            self.compute_graph.backward(acc)
+    def __truediv__(self, other):
+        if not isinstance(other, ad_float):
+            other = ad_float(other)
+        return ad_float(
+            self.value / other.value,
+            compute_graph=ad_division_node(self, other)
+        )
+
+    def __rtruediv__(self, other):
+        if not isinstance(other, ad_float):
+            other = ad_float(other)
+        return ad_float(
+            other.value / self.value,
+            compute_graph=ad_division_node(other, self)
+        )
 
     def backward(self):
         # Form Compute Graph
         vertices = []
         edges = {}
         generate_graph(self, vertices, edges)
-        print("Printing Graph:")
-        for v in vertices:
-            print(v)
-        for v in edges.keys():
-            print(v)
-            print("Is connected to:")
-            for n in edges[v]:
-                print(n)
 
         # Sort The Graph
         sorted_vertices = topological_sort(vertices, edges)
@@ -99,7 +81,175 @@ class ad_float:
 
 
 
-def generate_graph(vertex, vertices, edges):
+###############################################################################
+# Differentiable Math Functions
+###############################################################################
+
+def ad_exp(x: ad_float):
+    return ad_float(
+        math.exp(x.value),
+        compute_graph=ad_exp_node(x)
+    )
+
+
+def ad_log(x: ad_float):
+    return ad_float(
+        math.log(x.value),
+        compute_graph=ad_log_node(x)
+    )
+
+
+def ad_sin(x: ad_float):
+    return ad_float(
+        math.sin(x.value),
+        compute_graph=ad_sin_node(x)
+    )
+
+
+def ad_cos(x: ad_float):
+    return ad_float(
+        math.cos(x.value),
+        compute_graph=ad_cos_node(x)
+    )
+
+
+###############################################################################
+# Computational Graph Nodes
+###############################################################################
+
+class ad_addition_node:
+
+    def __init__(self, left, right):
+        self.left = left
+        self.right = right
+        self.vertices = [left, right]
+
+    def backward(self, acc):
+        self.left.grad += acc
+        self.right.grad += acc
+
+
+class ad_substraction_node:
+
+    def __init__(self, left, right):
+        self.left = left
+        self.right = right
+        self.vertices
+    
+    def backward(self, acc):
+        self.left.grad += acc
+        self.right.grad += -1 * acc
+
+
+class ad_multiplication_node:
+
+    def __init__(self, left, right):
+        self.left = left
+        self.right = right
+        self.vertices = [left, right]
+
+    def backward(self, acc):
+        self.left.grad += self.right.value * acc
+        self.right.grad += self.left.value * acc
+
+
+class ad_division_node:
+
+    def __init__(self, numerator, denominator):
+        self.numerator = numerator
+        self.denominator = denominator
+        self.vertices = [numerator, denominator]
+
+    def backward(self, acc):
+        self.numerator.grad += acc / self.denominator.value
+        self.denominator.grad += -1 * acc * self.numerator / (self.denominator * self.denominator)
+
+
+class ad_exp_node:
+
+    def __init__(self, arg):
+        self.arg = arg
+        self.vertices = [arg]
+
+    def backward(self, acc):
+        self.arg.grad += acc * math.exp(self.arg.value)
+
+
+class ad_log_node:
+
+    def __init__(self, arg):
+        self.arg = arg
+        self.vertices = [arg]
+
+    def backward(self, acc):
+        self.arg.grad += acc / self.arg.value
+
+
+class ad_sin_node:
+
+    def __init__(self, arg): 
+        self.arg = arg
+        self.vertices = [arg]
+
+    def backward(self, acc):
+        self.arg.grad += acc * math.cos(self.arg.value)
+
+
+class ad_cos_node:
+
+    def __init__(self, arg):
+        self.arg = arg
+        self.vertices = [arg]
+    
+    def backward(self, acc):
+        self.arg.grad += -1 * acc * math.sin(self.arg.value)
+
+
+###############################################################################
+# Utility Functions
+###############################################################################
+
+# Generates a Topological sorting of the given DAG
+def topological_sort(vertices, edges):
+    # Mark all the vertices as unvisited
+    visited = [False]*len(vertices)
+    result = []
+
+    vertex_id_array = {v: i for i, v in enumerate(vertices)}
+
+    # Define Helper Functions
+    def get_vertex_id(vertex, vertices):
+        for (i, vertex_prime) in enumerate(vertices):
+            if vertices is vertex_prime:
+                return i
+        print("\n\n\n\n\n")
+        print(vertex)
+        print(len(vertices))
+    
+    def helper(i, visited_array, result, vertices, edges):
+        # We are currently vistiting vertex id
+        visited_array[i] = True
+
+        # We now visit all adjacent Vertices that have yet to be visited
+        adjacent = edges[vertices[i]]
+        for v in adjacent:
+            new_i = vertex_id_array[v] #get_vertex_id(v, vertices)
+            if not visited_array[new_i]:
+                helper(new_i, visited_array, result, vertices, edges)
+        
+        # Place current node at the front of the result
+        result.insert(0, vertices[i])
+
+    # Perform Sort using helper function
+    for i in range(len(vertices)):
+        if not visited[i]:
+            helper(i, visited, result, vertices, edges)
+    
+    return result
+
+
+# Generates the computational graph that resulted in the creation of the vertex
+def generate_graph(vertex: ad_float, vertices, edges):
     if vertex not in vertices:
         vertices.append(vertex)
         if vertex.compute_graph is not None:
@@ -108,28 +258,3 @@ def generate_graph(vertex, vertices, edges):
             edges.update({vertex: []})
         for v in edges[vertex]:
             generate_graph(v, vertices, edges)
-
-
-
-
-
-if __name__ == '__main__':
-    x = ad_float(3.0)
-    y = ad_float(4.0)
-    # print(x)
-    # print(y)
-    z = x + y
-    v = x * y
-    u = v * z
-    mu = v * x
-    sigma = u * mu
-    # print(z)
-    sigma.backward()
-    print(f"z.value = {z.value}")
-    print(f"v.value = {v.value}")
-    print(f"u.value = {u.value}")
-    print(f"mu.value = {mu.value}")
-    print(f"sigma.value = {sigma.value}")
-
-    print(f"x.grad = {x.grad}")
-    print(f"y.grad = {y.grad}")
