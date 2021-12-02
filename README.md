@@ -11,9 +11,9 @@ The entire functionaliry for this library can be found in `autodiff.py`.
 The library may then be used by copying the `autodiff.py` file.
 
 ## Features/Goals
-- [] Add implementations for all differentiable python.math functions 
-- [] Document the `autodiff` library
-- [] Add extensive tests/examples
+- [ ] Add implementations for all differentiable python.math functions 
+- [ ] Document the `autodiff` library
+- [ ] Add extensive tests/examples
 
 ## Example Code
 ```python
