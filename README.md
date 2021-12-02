@@ -1,5 +1,3 @@
-A working autodiff library
-
 # autodiff
 
 `autodiff` is a toy implementation of [reverse mode automatic differentiation](https://en.wikipedia.org/wiki/Automatic_differentiation#Reverse_accumulation).
