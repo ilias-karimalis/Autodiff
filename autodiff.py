@@ -13,7 +13,7 @@ class ad_float:
         self.compute_graph = compute_graph
 
     def __str__(self):
-        # Pretty prints ad_float
+        # For better Debug Printing of ad_float class
         return f"ad_float:\nvalue: {self.value}\ngrad: {self.grad}\ncompute_graph: {self.compute_graph}"
 
     def __add__(self, other):
@@ -61,6 +61,7 @@ class ad_float:
             other.value / self.value,
             compute_graph=ad_division_node(other, self)
         )
+        print(len(vertices))
 
     def backward(self):
         # Form Compute Graph
@@ -73,9 +74,7 @@ class ad_float:
 
         # Run backward on the graph
         sorted_vertices[0].grad = 1.0
-        print("Printing Sorted Vertices")
         for vertex in sorted_vertices:
-            print(vertex)
             if vertex.compute_graph is not None:
                 vertex.compute_graph.backward(vertex.grad)
 
@@ -222,9 +221,6 @@ def topological_sort(vertices, edges):
         for (i, vertex_prime) in enumerate(vertices):
             if vertices is vertex_prime:
                 return i
-        print("\n\n\n\n\n")
-        print(vertex)
-        print(len(vertices))
     
     def helper(i, visited_array, result, vertices, edges):
         # We are currently vistiting vertex id
