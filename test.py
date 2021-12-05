@@ -19,12 +19,4 @@ def some_operations(x, y):
 
 if __name__ == '__main__':
     test_addition()
-    # x = ad_float(3.0)
-    # y = ad_float(4.0)
-    # sigma = some_operations(x, y)
-    # sigma.backward()
-    # print(f"sigma.value = {sigma.value}")
-
-    # print(f"x.grad = {x.grad}")
-    # print(f"y.grad = {y.grad}")
 
