@@ -61,7 +61,6 @@ class ad_float:
             other.value / self.value,
             compute_graph=ad_division_node(other, self)
         )
-        print(len(vertices))
 
     def backward(self):
         # Form Compute Graph
