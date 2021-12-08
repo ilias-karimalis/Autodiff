@@ -14,7 +14,10 @@ class ad_float:
 
     def __str__(self):
         # For better Debug Printing of ad_float class
-        return f"ad_float:\nvalue: {self.value}\ngrad: {self.grad}\ncompute_graph: {self.compute_graph}"
+       return f"ad_float:\nvalue: {self.value}\ngrad: {self.grad}\ncompute_graph: {self.compute_graph}"
+    
+    def __repr__(self):
+        return str(self.value)
 
     def __add__(self, other):
         if not isinstance(other, ad_float):
@@ -77,7 +80,64 @@ class ad_float:
             if vertex.compute_graph is not None:
                 vertex.compute_graph.backward(vertex.grad)
 
+###############################################################################
+# Auto Diff Tensor Class
+###############################################################################
 
+class ad_matrix:
+
+    def __init__(self, height, width):
+        self.height = height
+        self.width = width
+        self.__m = [[ad_float(0) for _ in range(width)] for _ in range(height)]
+
+    def __str__(self):
+        ret = ""
+        for i, row in enumerate(self.__m):
+            ret += str(row) 
+            ret += "\n" if i < len(self.__m) - 1 else ""
+        return ret
+
+    def __getitem__(self, *args):
+        # Assert we have the correct number of elements
+        assert(len(args) > 0)
+        assert(len(args) < 3)
+        first, second = args
+
+        if isinstance(first, int) and isinstance(second, int):
+            return self.__m[first][second]
+
+        # For now we just crash:
+        print(f"We do not yet support matrix array access of the type {type(first)}, {type(second)}.")
+        exit(-1)
+
+    def __setitem__(self, args, value):
+        assert(len(args) > 0)
+        assert(len(args) < 3)
+        first, second = args
+
+        # There's better ways of handling this, but this is sufficient for now
+        # TODO do better 
+        assert(isinstance(value, ad_float))
+
+        if isinstance(first, int) and (second, int):
+            self.__m[first][second] = value
+            return
+        
+        # For now we just crash:
+        print(f"We do not yet support matrix array access of the type {type(first)}, {type(second)}.")
+        exit(-1)
+        
+
+def ad_ones(height, width):
+    m = ad_matrix(height, width)
+    for i in range(height):
+        for j in range(width):
+            m[i, j] = ad_float(1)
+    return m
+
+def ad_zeros(height, width):
+    return ad_matrix(height, width)
 
 ###############################################################################
 # Differentiable Math Functions

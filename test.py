@@ -1,4 +1,4 @@
-from autodiff import ad_float
+from autodiff import ad_float, ad_ones, ad_zeros
 
 def test_addition():
     x = ad_float(4)
@@ -19,4 +19,7 @@ def some_operations(x, y):
 
 if __name__ == '__main__':
     test_addition()
+    m = ad_ones(2, 2)
+    print(m)
+    print(ad_zeros(2, 2))
 
